@@ -9,7 +9,7 @@ LUCET_BINDINGS=thirdparty/lucet/lucet-wasi/bindings.json
 WAVM=thirdparty/wavm/build/bin/wavm
 export WAVM_OBJECT_CACHE_DIR=benchmark/wavm/cache
 TIMEFORMAT=%4R
-COUNT=5
+COUNT=1
 
 NAME=(
     nop
@@ -262,21 +262,22 @@ function print_result() {
     done | tee result.csv
 }
 
-prepare
-compile
-benchmark_native
-benchmark_ssvm
-benchmark_lucet
-benchmark_wavm
-benchmark_wasmer_singlepass
-benchmark_wasmer_cranelift
-benchmark_wasmer_llvm
+#prepare
+#compile
+#benchmark_native
+#benchmark_ssvm
+#benchmark_lucet
+#benchmark_wavm
+#benchmark_wasmer_singlepass
+#benchmark_wasmer_cranelift
+#benchmark_wasmer_llvm
 prepare_wasmer_native
 wasmer_compile_native
 benchmark_wasmer_singlepass_native
 benchmark_wasmer_cranelift_native
 benchmark_wasmer_llvm_native
-benchmark_wasmer_jit
-benchmark_v8
-benchmark_docker
+#benchmark_wasmer_jit
+#benchmark_v8
+#benchmark_docker
 print_result
+

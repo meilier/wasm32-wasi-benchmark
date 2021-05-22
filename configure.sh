@@ -48,6 +48,7 @@ nvm use -g v14.3.0
 curl -fsSL https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
 # Add LLVM 10 apt repository
 sudo apt-add-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main" -y # For Ubuntu 18.04
+sudo apt-add-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-11 main" -y # For lld-11 liblld-11-dev
 # sudo apt-add-repository "http://apt.llvm.org/focal/ llvm-toolchain-focal-10 main" # For Ubuntu 20.04
 
 # LLVM
@@ -55,7 +56,7 @@ sudo apt install -y libllvm-10-ocaml-dev libllvm10 llvm-10 llvm-10-dev llvm-10-d
 # Clang and co
 sudo apt install -y clang-10 clang-tools-10 clang-10-doc libclang-common-10-dev libclang-10-dev libclang1-10 clang-format-10 clangd-10
 # lld (linker)
-sudo apt install -y lld-10 liblld-10-dev
+sudo apt install -y lld-11 liblld-11-dev
 # libc++
 sudo apt install -y libc++-10-dev libc++abi-10-dev
 
@@ -74,7 +75,7 @@ sudo apt install -y cmake
 ### Install binaryen
 mkdir -p thirdpartybin
 cd thirdpartybin
-wget https://github.com/WebAssembly/binaryen/releases/download/version_93/binaryen-version_93-x86_64-linux.tar.gz
-tar zxvf binaryen-version_93-x86_64-linux.tar.gz
+wget https://github.com/WebAssembly/binaryen/releases/download/version_100/binaryen-version_100-x86_64-linux.tar.gz
+tar zxvf binaryen-version_100-x86_64-linux.tar.gz
 cd ..
-export PATH=$(pwd)/thirdpartybin/binaryen-version_93:$PATH
+export PATH=$(pwd)/thirdpartybin/binaryen-version_100:$PATH
