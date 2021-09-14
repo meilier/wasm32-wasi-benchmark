@@ -2,3 +2,5 @@ benchmark/
 build/
 test/
 thirdparty/
+thirdpartybin/
+*.csv
