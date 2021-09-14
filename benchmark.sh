@@ -77,6 +77,20 @@ function wasmer_compile_native()
     done
 }
 
+function prepare_wasmtime(){
+    mkdir -p benchmark/wasmtime_jit
+    mkdir -p benchmark/wasmtime_native
+}
+
+function wasmtime_compile()
+{
+    rm -f benchmark/wasmtime_.*_native/compile.time
+    for ((i=0; i<"${#NAME[@]}"; ++i)); do
+        (time wasmtime compile --enable-simd --cranelift build/"$MODE"/"${NAME[i]}".wasm -o benchmark/wasmtime_cranelift_native/"${NAME[i]}".so 2>&1) 2>> benchmark/wasmtime_cranelift_native/compile.time || true
+        #(time wasmtime compile --enable-simd --lightbeam build/"$MODE"/"${NAME[i]}".wasm -o benchmark/wasmtime_lightbeam_native/"${NAME[i]}".so 2>&1) 2>> benchmark/wasmtime_lightbeam_native/compile.time || true
+    done
+}
+
 function benchmark_wasmer_singlepass_native() {
     echo benchmark_wasmer_singlepass_native
     for ((i=0; i<"${#NAME[@]}"; ++i)); do
@@ -116,6 +130,31 @@ function benchmark_wasmer_llvm_native() {
     done
 }
 
+function benchmark_wasmtime_cranelift_native() {
+    echo benchmark_wasmtime_cranelift_native
+    for ((i=0; i<"${#NAME[@]}"; ++i)); do
+        LOG="benchmark/wasmtime_cranelift_native/"${NAME[i]}".log"
+        rm -f "$LOG"
+        touch "$LOG"
+        for ((j=0; j<$COUNT; ++j)); do
+            time wasmtime run benchmark/wasmtime_cranelift_native/"${NAME[i]}".so "${ARGS[i]}" <benchmark/random >&/dev/null
+        done 2> "$LOG"
+        /usr/bin/time -o "benchmark/wasmtime_cranelift_native/"${NAME[i]}".time" --verbose wasmtime run benchmark/wasmtime_cranelift_native/"${NAME[i]}".so "${ARGS[i]}" <benchmark/random >&/dev/null
+    done
+}
+
+function benchmark_wasmtime_jit() {
+    echo benchmark_wasmtime_jit
+    for ((i=0; i<"${#NAME[@]}"; ++i)); do
+        LOG="benchmark/wasmtime_jit/"${NAME[i]}".log"
+        rm -f "$LOG"
+        touch "$LOG"
+        for ((j=0; j<$COUNT; ++j)); do
+            time wasmtime run build/"$MODE"/"${NAME[i]}".wasm "${ARGS[i]}" <benchmark/random >&/dev/null
+        done 2> "$LOG"
+        /usr/bin/time -o "benchmark/wasmtime_jit/"${NAME[i]}".time" --verbose wasmtime run benchmark/wasmtime_jit/"${NAME[i]}".so "${ARGS[i]}" <benchmark/random >&/dev/null
+    done
+}
 
 function benchmark_native() {
     echo benchmark_native
@@ -264,6 +303,11 @@ function print_result() {
 
 prepare
 compile
+prepare_wasmer_native
+wasmer_compile_native
+prepare_wasmtime
+wasmtime_compile
+
 benchmark_native
 benchmark_ssvm
 benchmark_lucet
@@ -272,11 +316,15 @@ benchmark_wasmer_singlepass
 benchmark_wasmer_cranelift
 benchmark_wasmer_llvm
 
-prepare_wasmer_native
-wasmer_compile_native
+# add wamser native test
 benchmark_wasmer_singlepass_native
 benchmark_wasmer_cranelift_native
 benchmark_wasmer_llvm_native
+
+# add wasmtime test
+benchmark_wasmtime_cranelift_native
+benchmark_wasmtime_jit
+
 benchmark_wasmer_jit
 benchmark_v8
 benchmark_docker
