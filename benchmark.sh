@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# This script run the truly benchmark test that using different runtime running different algorithm
+# Name list is algorithm list, and ARGS correspones to its main program input argument.
+# TIMEFORMAT=%4R redirect time log to 2 and finnaly to runtime's log with only numeric time logged into log.
+
 MODE=wasm
 SSVMC=/usr/bin/wasmedgec
 SSVM=/usr/bin/wasmedge
@@ -9,7 +13,8 @@ LUCET_BINDINGS=thirdparty/lucet/lucet-wasi/bindings.json
 WAVM=thirdparty/wavm/build/bin/wavm
 export WAVM_OBJECT_CACHE_DIR=benchmark/wavm/cache
 TIMEFORMAT=%4R
-COUNT=5
+# three time I think it is enough
+COUNT=3
 
 NAME=(
     nop
@@ -79,15 +84,25 @@ function wasmer_compile_native()
 
 function prepare_wasmtime(){
     mkdir -p benchmark/wasmtime_jit
-    mkdir -p benchmark/wasmtime_native
+    mkdir -p benchmark/wasmtime_cranelift_native
 }
 
 function wasmtime_compile()
 {
     rm -f benchmark/wasmtime_.*_native/compile.time
     for ((i=0; i<"${#NAME[@]}"; ++i)); do
-        (time wasmtime compile --enable-simd --cranelift build/"$MODE"/"${NAME[i]}".wasm -o benchmark/wasmtime_cranelift_native/"${NAME[i]}".so 2>&1) 2>> benchmark/wasmtime_cranelift_native/compile.time || true
+        (time wasmtime compile --cranelift build/"$MODE"/"${NAME[i]}".wasm -o benchmark/wasmtime_cranelift_native/"${NAME[i]}".so 2>&1) 2>> benchmark/wasmtime_cranelift_native/compile.time || true
         #(time wasmtime compile --enable-simd --lightbeam build/"$MODE"/"${NAME[i]}".wasm -o benchmark/wasmtime_lightbeam_native/"${NAME[i]}".so 2>&1) 2>> benchmark/wasmtime_lightbeam_native/compile.time || true
+    done
+}
+
+# Not yet effective
+function wasmtime_compile_lightbeam()
+{
+    rm -f benchmark/wasmtime_.*_native/compile.time
+    for ((i=0; i<"${#NAME[@]}"; ++i)); do
+        echo ${NAME[i]}
+        (time /tmp/wasmtime compile --enable-simd --lightbeam build/"$MODE"/"${NAME[i]}".wasm -o benchmark/wasmtime_lightbeam_native/"${NAME[i]}".so 2>&1) 2>> benchmark/wasmtime_lightbeam_native/compile.time || true
     done
 }
 
@@ -137,7 +152,7 @@ function benchmark_wasmtime_cranelift_native() {
         rm -f "$LOG"
         touch "$LOG"
         for ((j=0; j<$COUNT; ++j)); do
-            time wasmtime run benchmark/wasmtime_cranelift_native/"${NAME[i]}".so "${ARGS[i]}" <benchmark/random >&/dev/null
+            time wasmtime run --allow-precompiled benchmark/wasmtime_cranelift_native/"${NAME[i]}".so "${ARGS[i]}" <benchmark/random >&/dev/null
         done 2> "$LOG"
         /usr/bin/time -o "benchmark/wasmtime_cranelift_native/"${NAME[i]}".time" --verbose wasmtime run benchmark/wasmtime_cranelift_native/"${NAME[i]}".so "${ARGS[i]}" <benchmark/random >&/dev/null
     done
