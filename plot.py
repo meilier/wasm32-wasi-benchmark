@@ -49,8 +49,8 @@ class MainProgram(object):
                                 2 * self.width / len(self.runtime),
                                 label=self.runtime[i])
 
-        self.ax.set_title("runtime compare of different algorithm",
-                          fontsize=10)
+        self.ax.set_title("runtime performance compare of different algorithm",
+                          fontsize=8)
         self.ax.set_xticklabels([''] + self.alg, fontsize=3)
 
         self.ax.legend(fontsize=5, loc=(0.7, 0.6))
